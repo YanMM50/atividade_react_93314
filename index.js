@@ -23,3 +23,27 @@ const Cliente = sequelize.define('Cliente',{
     }
 
 })
+
+//Configuração do servidor express.
+const app = express()
+app.use(cors()) // permite o front-end acessar a API
+app.use(express.json()) // permite o servidor entender JSON
+
+const port = 3001
+
+// definição de rotas (endpoints).
+app.get('/clientes', async(req, res) => {
+    const todosOsClientes = await Cliente.findAll()
+    res.json(todosOsClientes)
+})
+
+app.post('/clientes', async(req, res) =>{
+    try{
+        const{nome,email,telefone} = req.body
+        const novoCliente = await Cliente.create({nome, email, telefone})
+        res.status(201).json({
+            
+        })
+
+    }
+})
