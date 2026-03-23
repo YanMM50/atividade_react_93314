@@ -2,13 +2,15 @@ const express = require('express')
 const cors = require('cors')
 const { Sequelize, DataTypes } = require('sequelize')
 
-// Configuração da conexão com o banco de dados - MySQL.
+// Conexão com MySQL
 const sequelize = new Sequelize('db_projeto', 'root', '', {
     host: 'localhost',
     dialect: 'mysql'
 })
 
-// Definição de tabelas (modelo) de clientes.
+
+
+// Cliente
 const Cliente = sequelize.define('Cliente', {
     nome: {
         type: DataTypes.STRING,
@@ -18,90 +20,194 @@ const Cliente = sequelize.define('Cliente', {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true
-    }, 
+    },
     telefone: {
         type: DataTypes.STRING
     }
 })
 
-// Configuração do servidor express.
+// Livro
+const Livro = sequelize.define('Livro', {
+    titulo: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    autor: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    numero_paginas: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    preco: {
+        type: DataTypes.FLOAT,
+        allowNull: false
+    }
+})
+
+// Funcionário
+const Funcionario = sequelize.define('Funcionario', {
+    nome: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    cpf: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
+    },
+    data_nascimento: {
+        type: DataTypes.DATEONLY,
+        allowNull: false
+    },
+    email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
+    }
+})
+
+
 const app = express()
-app.use(cors()) // Permite o front-end acessar a API.
-app.use(express.json()) // Permite o servidor entender JSON.
+app.use(cors())
+app.use(express.json())
 
 const port = 3001
 
-// Definição de rotas (endpoints).
-// req: request
-// res: response
+
+
 app.get('/clientes', async (req, res) => {
-    const todosOsClientes = await Cliente.findAll()
-    res.json(todosOsClientes)
+    const clientes = await Cliente.findAll()
+    res.json(clientes)
 })
 
-app.post('/clientes', async(req, res) => {
+app.post('/clientes', async (req, res) => {
     try {
-        const {nome, email, telefone} = req.body
-        const novoCliente = await Cliente.create({ nome, email, telefone })
-        res.status(201).json({
-            message: 'Cliente cadastrado com sucesso.',
-            cliente: novoCliente
-        })
+        const cliente = await Cliente.create(req.body)
+        res.status(201).json(cliente)
     } catch (error) {
-        res.status(400).json({
-            erro: 'Erro ao cadastrar cliente. Verifique se o cliente já existe'
-        })
-    } 
-})
-
-app.put("/clientes/:id", async (req, res) =>{
-    try{
-        const {id} = req.params
-        // const {nome, email, telefone} = req.body
-
-        const [updated] = await Cliente.update(
-            {...req.body},
-            {where: {id:id}}
-        )
-        if (updated){
-            const clienteAtualizado = await Cliente.findByPk(id)
-            return res.status(200).json({
-                mensage:"Cliente atualizado com sucesso.",
-                cliente: clienteAtualizado
-            })
-        }
-        return res.status(404).json({ erro: "Cliente não encontrado."})
-    } catch(error){
-        res.status(500).json({erro: "Erro ao atualizar cliente."})
+        res.status(400).json({ erro: "Erro ao criar cliente" })
     }
 })
 
-app.delete("/clientes/:id", async(req, res) =>{
-    try {
-        const {id} = req.params
-        const deletado = await Cliente.destroy({
-            where: { id:id}
-        })
+app.put('/clientes/:id', async (req, res) => {
+    const { id } = req.params
 
-        if (deletado){
-            return res.status(200).json({message: "Cliente removido com sucesso."})
-        }
-        
-        return res.status(404).json({message: "Cliente não encontrado."})
+    const [updated] = await Cliente.update(req.body, {
+        where: { id }
+    })
+
+    if (updated) {
+        const clienteAtualizado = await Cliente.findByPk(id)
+        return res.json(clienteAtualizado)
+    }
+
+    res.status(404).json({ erro: "Cliente não encontrado" })
+})
+
+app.delete('/clientes/:id', async (req, res) => {
+    const deletado = await Cliente.destroy({
+        where: { id: req.params.id }
+    })
+
+    if (deletado) {
+        return res.json({ message: "Cliente deletado" })
+    }
+
+    res.status(404).json({ erro: "Cliente não encontrado" })
+})
+
+
+app.get('/livros', async (req, res) => {
+    const livros = await Livro.findAll()
+    res.json(livros)
+})
+
+app.post('/livros', async (req, res) => {
+    try {
+        const livro = await Livro.create(req.body)
+        res.status(201).json(livro)
     } catch (error) {
-        return res.status(500).json({message: "Erro ao excluir cliente."})
-        
+        res.status(400).json({ erro: "Erro ao criar livro" })
     }
 })
 
-// Iniciando o servidor.
+app.put('/livros/:id', async (req, res) => {
+    const { id } = req.params
+
+    const [updated] = await Livro.update(req.body, {
+        where: { id }
+    })
+
+    if (updated) {
+        const livroAtualizado = await Livro.findByPk(id)
+        return res.json(livroAtualizado)
+    }
+
+    res.status(404).json({ erro: "Livro não encontrado" })
+})
+
+app.delete('/livros/:id', async (req, res) => {
+    const deletado = await Livro.destroy({
+        where: { id: req.params.id }
+    })
+
+    if (deletado) {
+        return res.json({ message: "Livro deletado" })
+    }
+
+    res.status(404).json({ erro: "Livro não encontrado" })
+})
+
+
+app.get('/funcionarios', async (req, res) => {
+    const funcionarios = await Funcionario.findAll()
+    res.json(funcionarios)
+})
+
+app.post('/funcionarios', async (req, res) => {
+    try {
+        const funcionario = await Funcionario.create(req.body)
+        res.status(201).json(funcionario)
+    } catch (error) {
+        res.status(400).json({ erro: "Erro ao criar funcionário" })
+    }
+})
+
+app.put('/funcionarios/:id', async (req, res) => {
+    const { id } = req.params
+
+    const [updated] = await Funcionario.update(req.body, {
+        where: { id }
+    })
+
+    if (updated) {
+        const funcionarioAtualizado = await Funcionario.findByPk(id)
+        return res.json(funcionarioAtualizado)
+    }
+
+    res.status(404).json({ erro: "Funcionário não encontrado" })
+})
+
+app.delete('/funcionarios/:id', async (req, res) => {
+    const deletado = await Funcionario.destroy({
+        where: { id: req.params.id }
+    })
+
+    if (deletado) {
+        return res.json({ message: "Funcionário deletado" })
+    }
+
+    res.status(404).json({ erro: "Funcionário não encontrado" })
+})
+
+
 sequelize.sync().then(() => {
     app.listen(port, () => {
         console.log(`🚀 Servidor rodando na porta: ${port}`)
-        console.log('✅ Banco de dados sincronizado.')
+        console.log('✅ Banco sincronizado')
     })
 }).catch((error) => {
-    console.error('❌ Erro ao conectar ou sincronizar com o banco de dados.')
-    console.error(error)
+    console.error('❌ Erro ao conectar com o banco:', error)
 })
-
