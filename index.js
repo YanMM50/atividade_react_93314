@@ -54,13 +54,13 @@ app.post('/clientes', async(req, res) => {
     } 
 })
 
-app.put("/cliente/:id", async (req, res) =>{
+app.put("/clientes/:id", async (req, res) =>{
     try{
         const {id} = req.params
-        const {nome, email, telefone} = req.body
+        // const {nome, email, telefone} = req.body
 
         const [updated] = await Cliente.update(
-            {nome, email, telefone},
+            {...req.body},
             {where: {id:id}}
         )
         if (updated){
